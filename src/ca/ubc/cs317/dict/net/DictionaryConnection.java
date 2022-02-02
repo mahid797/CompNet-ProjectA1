@@ -10,6 +10,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.*;
 
+import static ca.ubc.cs317.dict.net.Status.readStatus;
+
 public class DictionaryConnection {
 
     private static final int DEFAULT_PORT = 2628;
@@ -35,6 +37,11 @@ public class DictionaryConnection {
             this.socketOutput = new PrintWriter(socket.getOutputStream(), true);
             this.socketInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             System.out.println("Connection established; Host: " + host + " on port : " + port);
+
+            Status a = readStatus(socketInput);
+            if (a.getStatusCode() != 220) {
+                throw new DictConnectionException();
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
