@@ -76,10 +76,10 @@ public class DictionaryConnection {
         socketOutput.println("quit");
 
         try {
-
+            socket.close();
             socketInput.close();
             socketOutput.close();
-            socket.close();
+
 
         } catch (Exception e) {
 
@@ -101,7 +101,7 @@ public class DictionaryConnection {
     public synchronized Map<String, Database> getDatabaseList() throws DictConnectionException {
         Map<String, Database> databaseMap = new HashMap<>();
 
-        // TODO Add your code here
+
 
         return databaseMap;
     }
