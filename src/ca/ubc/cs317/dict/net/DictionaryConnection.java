@@ -76,9 +76,10 @@ public class DictionaryConnection {
         socketOutput.println("quit");
 
         try {
-            socket.close();
+
             socketInput.close();
             socketOutput.close();
+            socket.close();
 
         } catch (Exception e) {
 
