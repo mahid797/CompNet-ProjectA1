@@ -73,15 +73,12 @@ public class DictionaryConnection {
      */
     public synchronized void close() {
 
-        socketOutput.println(QUIT);
-
+        // TODO Add your code here
         try {
-            socket.close();
-            socketInput.close();
-            socketOutput.close();
-
+            this.socket.close();
+            this.socketInput.close();
+            this.socketOutput.close();
         } catch (Exception e) {
-
             e.printStackTrace();
             System.exit(1);
         }
