@@ -5,11 +5,13 @@ import ca.ubc.cs317.dict.model.Definition;
 import ca.ubc.cs317.dict.model.MatchingStrategy;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.*;
 
+import static ca.ubc.cs317.dict.net.DictStringParser.splitAtoms;
 import static ca.ubc.cs317.dict.net.Status.readStatus;
 
 public class DictionaryConnection {
@@ -72,20 +74,19 @@ public class DictionaryConnection {
      *
      */
     public synchronized void close() {
-
-        socketOutput.println("quit");
+        socketOutput.flush();
+        socketOutput.println("QUIT");
 
         try {
             socket.close();
             socketInput.close();
             socketOutput.close();
 
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
+        } catch (Exception ex) {
+            //System.out.println("Error closing the streams");
             System.exit(1);
         }
+
     }
 
     /**
@@ -101,7 +102,35 @@ public class DictionaryConnection {
     public synchronized Map<String, Database> getDatabaseList() throws DictConnectionException {
         Map<String, Database> databaseMap = new HashMap<>();
 
+        socketOutput.println("SHOW DB");
+        Status response = readStatus(socketInput);
 
+        if (response.getStatusCode() == 110) {
+            String nextLine = null;
+            try {
+                nextLine = socketInput.readLine();
+            } catch (IOException e) {
+
+            }
+
+            while (!nextLine.equals(".")) {
+
+                String[] a = splitAtoms(nextLine);
+                Database newDB = new Database(a[0], a[1]);
+                databaseMap.put(newDB.getName(), newDB);
+                try {
+                    nextLine = socketInput.readLine();
+                } catch (IOException e) {}
+            }
+        }
+
+        else if (response.getStatusCode() == 554) {
+            // do nothing (not sure)
+        }
+
+        else {
+            throw new DictConnectionException();
+        }
 
         return databaseMap;
     }
