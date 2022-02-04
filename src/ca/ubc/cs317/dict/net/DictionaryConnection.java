@@ -78,6 +78,7 @@ public class DictionaryConnection {
         socketOutput.println("QUIT");
 
         try {
+            Status a = readStatus(socketInput);
             socket.close();
             socketInput.close();
             socketOutput.close();
