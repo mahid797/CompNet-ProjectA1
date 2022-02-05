@@ -148,7 +148,35 @@ public class DictionaryConnection {
     public synchronized Set<MatchingStrategy> getStrategyList() throws DictConnectionException {
         Set<MatchingStrategy> set = new LinkedHashSet<>();
 
-        // TODO Add your code here
+        socketOutput.println("SHOW STRATEGIES");
+        Status response = readStatus(socketInput);
+        if (response.getStatusCode() == 111) {
+            String nextLine = null;
+            try {
+                nextLine = socketInput.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new DictConnectionException();
+            }
+
+            while (!nextLine.equals(".")) {
+                String[] a = splitAtoms(nextLine);
+                MatchingStrategy newMS = new MatchingStrategy(a[0], a[1]);
+                set.add(newMS);
+                try {
+                    nextLine = socketInput.readLine();
+                } catch (IOException e) {
+                }
+            }
+        }
+
+        else if (response.getStatusCode() == 555) {
+            // do nothing (not sure)
+        }
+
+        else {
+            throw new DictConnectionException();
+        }
 
         return set;
     }
@@ -177,7 +205,7 @@ public class DictionaryConnection {
 
         Set<String> set = new LinkedHashSet<>();
 
-        String command = "MATCH " + database.getName() + " " + strategy.getName() + " " + word;
+        String command = "MATCH " + database.getName() + " " + strategy.getName() + " " + "\"" + word + "\"";
         socketOutput.println(command);
 
         Status response = readStatus(socketInput);
