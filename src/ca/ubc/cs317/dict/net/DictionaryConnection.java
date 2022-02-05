@@ -174,9 +174,42 @@ public class DictionaryConnection {
      */
     public synchronized Set<String> getMatchList(String word, MatchingStrategy strategy, Database database)
             throws DictConnectionException {
+
         Set<String> set = new LinkedHashSet<>();
 
-        // TODO Add your code here
+        String command = "MATCH " + database.getName() + " " + strategy.getName() + " " + word;
+        socketOutput.println(command);
+
+        Status response = readStatus(socketInput);
+        if (response.getStatusCode() == 152) {
+
+            String nextLine = null;
+            try {
+                nextLine = socketInput.readLine();
+            } catch (IOException e) {
+
+            }
+            while (!nextLine.equals(".")) {
+
+                String[] a = splitAtoms(nextLine);
+                set.add(a[1]);
+                try {
+                    nextLine = socketInput.readLine();
+                } catch (IOException e) {}
+            }
+        }
+        else if (response.getStatusCode() == 550) {
+            throw new DictConnectionException();
+        }
+        else if (response.getStatusCode() == 551) {
+            throw new DictConnectionException();
+        }
+        else if (response.getStatusCode() == 552) {
+            // do nothing (not sure)
+        }
+        else {
+            throw new DictConnectionException();
+        }
 
         return set;
     }
