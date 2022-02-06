@@ -74,7 +74,7 @@ public class DictionaryConnection {
      *
      */
     public synchronized void close() {
-        socketOutput.flush();
+        //socketOutput.flush();
         socketOutput.println("QUIT");
 
         try {
@@ -264,7 +264,68 @@ public class DictionaryConnection {
             throws DictConnectionException {
         Collection<Definition> set = new ArrayList<>();
 
-        // TODO Add your code here
+        String command = "DEFINE " + database.getName() + " " + word;
+        socketOutput.println(command);
+
+        String nextLine = null;
+        Status response = readStatus(socketInput);
+        if (response.getStatusCode() == 150) {
+
+            try {
+                nextLine = socketInput.readLine();
+                String[] a = splitAtoms(nextLine);
+                String dbName = a[3];
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new DictConnectionException();
+            }
+            while (!nextLine.equals(".")) {
+                try {
+                    nextLine = socketInput.readLine();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new DictConnectionException();
+                }
+            }
+            try {
+                nextLine = socketInput.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
+
+            //response = readStatus(socketInput);
+
+            /*if (response.getStatusCode() == 250) {
+                close();*/
+
+        }
+
+        else if (response.getStatusCode() == 151) {
+                while (!nextLine.equals(".")) {
+                    String[] a = splitAtoms(nextLine);
+                    Definition newDef = new Definition(word, a[3]);
+                    set.add(newDef);
+                    try {
+                        nextLine = socketInput.readLine();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+        }
+
+        else if (response.getStatusCode() == 550) {
+            throw new DictConnectionException();
+
+        }
+
+        else if (response.getStatusCode() == 552) {
+            // do nothing (not sure)
+
+        }
+        else {
+        }
 
         return set;
     }
