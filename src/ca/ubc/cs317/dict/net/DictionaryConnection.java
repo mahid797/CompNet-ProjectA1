@@ -46,7 +46,7 @@ public class DictionaryConnection {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             throw new DictConnectionException();
         }
 
@@ -105,7 +105,6 @@ public class DictionaryConnection {
 
         socketOutput.println("SHOW DB");
         Status response = readStatus(socketInput);
-
         if (response.getStatusCode() == 110) {
             String nextLine = null;
             try {
@@ -148,18 +147,22 @@ public class DictionaryConnection {
     public synchronized Set<MatchingStrategy> getStrategyList() throws DictConnectionException {
         Set<MatchingStrategy> set = new LinkedHashSet<>();
 
-        socketOutput.println("SHOW STRATEGIES");
+        socketOutput.println("SHOW STRAT");
+
         Status response = readStatus(socketInput);
+
         if (response.getStatusCode() == 111) {
+
             String nextLine = null;
             try {
                 nextLine = socketInput.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 throw new DictConnectionException();
             }
 
             while (!nextLine.equals(".")) {
+
                 String[] a = splitAtoms(nextLine);
                 MatchingStrategy newMS = new MatchingStrategy(a[0], a[1]);
                 set.add(newMS);
@@ -168,6 +171,7 @@ public class DictionaryConnection {
                 } catch (IOException e) {
                 }
             }
+
         }
 
         else if (response.getStatusCode() == 555) {
@@ -209,6 +213,7 @@ public class DictionaryConnection {
         socketOutput.println(command);
 
         Status response = readStatus(socketInput);
+        //System.out.println(response.getStatusCode());
         if (response.getStatusCode() == 152) {
 
             String nextLine = null;
@@ -236,7 +241,7 @@ public class DictionaryConnection {
             // do nothing (not sure)
         }
         else {
-            throw new DictConnectionException();
+            //throw new DictConnectionException();
         }
 
         return set;
@@ -264,44 +269,58 @@ public class DictionaryConnection {
             throws DictConnectionException {
         Collection<Definition> set = new ArrayList<>();
 
-        String command = "DEFINE " + database.getName() + " " + word;
+        String command = "DEFINE " + database.getName() + " " + "\"" + word + "\"";
         socketOutput.println(command);
 
-        String nextLine = null;
         Status response = readStatus(socketInput);
-        if (response.getStatusCode() == 150) {
 
-            try {
-                nextLine = socketInput.readLine();
-                String[] a = splitAtoms(nextLine);
-                String dbName = a[3];
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (response.getStatusCode() == 150) {
+            Definition newDef;
+            String nextLine;
+
+            String[] detailStatus = splitAtoms(response.getDetails());
+            int defNum = Integer.parseInt(detailStatus[0]);
+
+
+            Status newResponse = readStatus(socketInput);
+            if (newResponse.getStatusCode() != 151) {
                 throw new DictConnectionException();
             }
-            while (!nextLine.equals(".")) {
+
+            int i = 0;
+            while (i < defNum) {
                 try {
+                    nextLine = response.getDetails();
+                    //nextLine = socketInput.readLine();
+                    String[] a = splitAtoms(nextLine);
+                    //String dbName = a[3];
+
+                    /*System.out.println(a[0]);
+                    System.out.println(a[1]);
+                    System.out.println(a[2]);*/
+
+                    newDef = new Definition(a[0], a[2]);
+
                     nextLine = socketInput.readLine();
+
                 } catch (IOException e) {
-                    e.printStackTrace();
                     throw new DictConnectionException();
                 }
+                while (!nextLine.equals(".")) {
+                    try {
+                        newDef.appendDefinition(nextLine);
+                        nextLine = socketInput.readLine();
+                    } catch (IOException e) {
+                        throw new DictConnectionException();
+                    }
+                }
+
+                i++;
+                set.add(newDef);
             }
-            try {
-                nextLine = socketInput.readLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            }
-
-            //response = readStatus(socketInput);
-
-            /*if (response.getStatusCode() == 250) {
-                close();*/
-
         }
 
-        else if (response.getStatusCode() == 151) {
+        /*else if (response.getStatusCode() == 151) {
                 while (!nextLine.equals(".")) {
                     String[] a = splitAtoms(nextLine);
                     Definition newDef = new Definition(word, a[3]);
@@ -313,7 +332,7 @@ public class DictionaryConnection {
                         e.printStackTrace();
                     }
                 }
-        }
+        }*/
 
         else if (response.getStatusCode() == 550) {
             throw new DictConnectionException();
