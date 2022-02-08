@@ -2,7 +2,8 @@
  * I need to take out from the array ('a' after the first while loop). I seperated it into a array
  * so I can take out the word and the database name from that line.
  * I tested using println statements and also using the GUI and they seem to show the correct output
- * But the prarielearn tests seem to have some other format or something, not sure what's wrong
+ * But the prarielearn tests seem to have some other format or something, not sure what's wrong. We should have been some
+ * sample outputs for the dictionary used on prarielearn
  * There alot of difference as to how some methods work on prarielearn and on the Local code & GUI, specially the readStatus and getStatusCode*/
 
 package ca.ubc.cs317.dict.net;
@@ -311,7 +312,7 @@ public class DictionaryConnection {
                 String[] a = splitAtoms(nextLine);
                 //String dbName = a[3];
 
-                a = splitAtoms(nextLine);
+                //a = splitAtoms(nextLine);
                 //System.out.println(a[1]);
                 //System.out.println(a[3]);
 
