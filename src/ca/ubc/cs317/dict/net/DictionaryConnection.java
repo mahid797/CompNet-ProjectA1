@@ -1,3 +1,10 @@
+/* getDefinitions() doesn't seem to work, because I Can't figure out the exact atom that
+ * I need to take out from the array ('a' after the first while loop). I seperated it into a array
+ * so I can take out the word and the database name from that line.
+ * I tested using println statements and also using the GUI and they seem to show the correct output
+ * But the prarielearn tests seem to have some other format or something, not sure what's wrong
+ * There alot of difference as to how some methods work on prarielearn and on the Local code & GUI, specially the readStatus and getStatusCode*/
+
 package ca.ubc.cs317.dict.net;
 
 import ca.ubc.cs317.dict.model.Database;
@@ -74,7 +81,7 @@ public class DictionaryConnection {
      *
      */
     public synchronized void close() {
-        //socketOutput.flush();
+        socketOutput.flush();
         socketOutput.println("QUIT");
 
         try {
@@ -157,7 +164,6 @@ public class DictionaryConnection {
             try {
                 nextLine = socketInput.readLine();
             } catch (IOException e) {
-                //e.printStackTrace();
                 throw new DictConnectionException();
             }
 
@@ -241,7 +247,7 @@ public class DictionaryConnection {
             // do nothing (not sure)
         }
         else {
-            //throw new DictConnectionException();
+            throw new DictConnectionException();
         }
 
         return set;
@@ -276,36 +282,43 @@ public class DictionaryConnection {
 
         if (response.getStatusCode() == 150) {
             Definition newDef;
-            String nextLine;
+            String nextLine = " ";
 
             String[] detailStatus = splitAtoms(response.getDetails());
             int defNum = Integer.parseInt(detailStatus[0]);
 
 
-            Status newResponse = readStatus(socketInput);
+           /* Status newResponse = readStatus(socketInput);
             if (newResponse.getStatusCode() != 151) {
                 throw new DictConnectionException();
-            }
+            }*/
+            /*try {
+                nextLine = socketInput.readLine();
+            } catch (IOException e) {
+
+            }*/
+            //nextLine = response.getDetails();
 
             int i = 0;
             while (i < defNum) {
+
                 try {
-                    nextLine = response.getDetails();
-                    //nextLine = socketInput.readLine();
-                    String[] a = splitAtoms(nextLine);
-                    //String dbName = a[3];
-
-                    /*System.out.println(a[0]);
-                    System.out.println(a[1]);
-                    System.out.println(a[2]);*/
-
-                    newDef = new Definition(a[0], a[2]);
-
                     nextLine = socketInput.readLine();
-
                 } catch (IOException e) {
-                    throw new DictConnectionException();
+
                 }
+
+                String[] a = splitAtoms(nextLine);
+                //String dbName = a[3];
+
+                a = splitAtoms(nextLine);
+                //System.out.println(a[1]);
+                //System.out.println(a[3]);
+
+                //This statement is to store the word and the database into database, it works on the GUI but not on prarie learn,
+                // not sure if it has a different format, as I mentioned in the starting comment
+                newDef = new Definition(a[1], a[3]);
+
                 while (!nextLine.equals(".")) {
                     try {
                         newDef.appendDefinition(nextLine);
@@ -314,34 +327,17 @@ public class DictionaryConnection {
                         throw new DictConnectionException();
                     }
                 }
-
                 i++;
                 set.add(newDef);
             }
         }
 
-        /*else if (response.getStatusCode() == 151) {
-                while (!nextLine.equals(".")) {
-                    String[] a = splitAtoms(nextLine);
-                    Definition newDef = new Definition(word, a[3]);
-                    set.add(newDef);
-                    try {
-                        nextLine = socketInput.readLine();
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-        }*/
-
         else if (response.getStatusCode() == 550) {
             throw new DictConnectionException();
-
         }
 
         else if (response.getStatusCode() == 552) {
             // do nothing (not sure)
-
         }
         else {
         }
